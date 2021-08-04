@@ -4,6 +4,7 @@ from time import time, sleep
 import math
 import matplotlib.pyplot as plt
 import argparse
+from Mission import MissionManager
 
 args_parser=argparse.ArgumentParser(description="This script needs control.py and lidar.py.")
 args_parser.add_argument("-x","--x",metavar="mm",action="store",dest="x",required=True,type=float,help="Set x coordinates for destination. (The units are mm. For example, setting -100 means 100mm to the left.) - Required.")
@@ -16,11 +17,24 @@ args_parser.add_argument("-b","--allow_backward",action="store_true",dest="allow
 args_parser.add_argument("-r","--reverse_turn",action="store_true",dest="reverse_turn",help="If set this flag, allow can move backward as necessary when turning while avoidance driving.")
 parsed_args=args_parser.parse_args()
 
+
+# 입력받은 값들을 변수에 넣어줌
+# X=parsed_args.x
+# Y=parsed_args.y
+# SPEED=parsed_args.speed*2.55
+# MX=parsed_args.mx
+# MN=parsed_args.mn
+# ALLOW_BACK=parsed_args.allow_backward
+# REVERSE_TURN=parsed_args.reverse_turn
+# AVD_RAD=abs(parsed_args.avoidance_radius)
+
+mission_num = MissionManager.next_mission()     # 현재 미션키 받아오기
+
 X=parsed_args.x
 Y=parsed_args.y
-SPEED=parsed_args.speed*2.55
-MX=parsed_args.mx
-MN=parsed_args.mn
+SPEED=50*2.55
+MX=1500
+MN=0
 ALLOW_BACK=parsed_args.allow_backward
 REVERSE_TURN=parsed_args.reverse_turn
 AVD_RAD=abs(parsed_args.avoidance_radius)
@@ -39,12 +53,14 @@ Cangle=0.00001
 W=346 #width of car (mm)
 H=310 #Length of car (mm)
 
+# 차량제어 초기화, 라이다 초기화
 CAR=UART.Controller()
 LiDAR=lidar.LiDAR()
 t=time()
 while time()-t<1:
     LiDAR.get()
 
+# 엔코더 관련변수 초기화
 CAR.reset_ENC()
 
 def sort_key(dstlist):
@@ -53,6 +69,7 @@ def sort_key(dstlist):
         dist+=abs(k["dist"])
     return dist
 
+# 최단경로 생성 함수
 def set_to_shortcut(Gx,Gy,Cx=0,Cy=0,abs_steer_angle=25,current_angle=0,allow_backward=False,allow_CCW=True):
 
     Mx=[math.cos(math.radians(-current_angle))*(H/math.tan(math.radians(abs(abs_steer_angle))))+math.sin(math.radians(-current_angle))*H+Cx, #Positive coord x
@@ -414,6 +431,7 @@ def check_collision(angle,distance,current_angle=0,current_dist=0,start_x=0,star
     else:
         return False
 
+# 목적지까지 이동
 def move_to_dst(angle,dist,speed=255,min_dst=MN):
     if round(abs(dist),0)>0:
         global Cangle, Gx, Gy, tmpX, tmpY

@@ -43,6 +43,7 @@ class MissionManager:
     def next_mission(self):
         self.mission_idx = 1    # 미션인덱스를 subscribe해서 넣어주어야함
         self.current_mission_key = self.mission_keys[self.mission_idx]
+        return self.current_mission_key
 
     # def add_database(self, db):
     #     self.db = db
