@@ -4,22 +4,19 @@
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-# from src.Database import Database
-# from Path import Path
-# from Control.Control import Control
 import threading
 import time
 import cv2
 import numpy as np
 import rospy
 from geometry_msgs.msg import PoseWithCovariance
+import control as CAR
 
 
 class MissionManager:
     def __init__(self):
         self.missions = dict()
         self.missions2 = dict()
-        # self.db = db
         self.mission_keys = list()
         self.mission_idx = None
         self.current_mission_key = None
@@ -30,12 +27,12 @@ class MissionManager:
 
 
     def add_mission(self, key, mission):
-        if key not in self.mission_keys:
-            warnings.warn("The new key %s is not registered.\
-                 Therefore, NO mission will be added." % key)
-        else:
-            mission.key = key
-            self.missions[key] = mission
+        # if key not in self.mission_keys:
+        #     warnings.warn("The new key %s is not registered.\
+        #          Therefore, NO mission will be added." % key)
+        # else:
+        mission.key = key
+        self.missions[key] = mission
 
     def main(self):
         self.next_mission()
@@ -44,9 +41,6 @@ class MissionManager:
         self.mission_idx = 1    # 미션인덱스를 subscribe해서 넣어주어야함
         self.current_mission_key = self.mission_keys[self.mission_idx]
         return self.current_mission_key
-
-    # def add_database(self, db):
-    #     self.db = db
 
     def start(self):
         self.manager_thread.start()
@@ -57,7 +51,6 @@ class MissionManager:
 
 class Mission(object):
     def __init__(self, control, path):
-        # self.db = db
         self.control = control
         self.path = path
         self.key = None
@@ -82,7 +75,6 @@ class GpsTrackingMission(Mission):
     def __init__(self, logging_data_idx, db, control, path):
         super(GpsTrackingMission, self).__init__(db, control, path)
 
-        # self.logging_data_idx = logging_data_idx
         self.speed = 100
         self.current_position = []
         rospy.Subscriber("/rtabmap/localization_pose",PoseWithCovariance,self.pose_cb)
@@ -106,7 +98,7 @@ class GpsTrackingMission(Mission):
                 break
 
             self.steer =  # TEB local planner가 보내준 제어값을 콘트롤값에 넣어줌
-            brake = 0
+            CAR.move()
             time.sleep(0.1)
 
 
@@ -134,8 +126,6 @@ if __name__ == "__main__":
 
     time.sleep(1)
 
-    path = Path(db=db)
-    control = Control(db=db, path=path)
 
     # obstacle = StaticSmallObstacleMission(db=db, control=control, path=path)
     # left_traffic = LeftTrafficLightMission(db=db, control=control, path=path)
